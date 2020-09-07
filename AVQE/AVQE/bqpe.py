@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from numpy import pi, exp
+from numpy import pi, exp, cos
 import os
 import time as time
 import sys
@@ -14,7 +14,7 @@ def aqpe(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, Sample_Size
     if sigma<0 or sigma > 1:
         raise ValueError("Sigma outside of acceptable ranges")
 
-    mu = random.uniform(-pi,pi)
+    mu = random.uniform(-pi, pi)
     run = 0
     flag = 0
     while sigma > threshold:
@@ -22,7 +22,7 @@ def aqpe(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, Sample_Size
         
         M = max(1,int(round(1/(sigma**Alpha))))
         theta = mu - sigma
-        p = 1/2 + np.cos(M*theta -  M*Phi)/2
+        p = 1/2 + cos(M*theta -  M*Phi)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
@@ -30,11 +30,11 @@ def aqpe(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, Sample_Size
             outcome = 1
         
         accepted = []         
-        for x_ in Sampled:
-            P = 1/2 + (1-2*outcome)*np.cos(M*x_- M*theta)
+        for varphi in Sampled:
+            P = 1/2 + (1-2*outcome)*cos(M*varphi- M*theta)/2
             if P > random.uniform(0, 1):
                 accepted.append(
-                    x_
+                    varphi
                 )
         # print(len(accepted), P, p)
         if len(accepted) < 2:
@@ -48,11 +48,12 @@ def aqpe(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, Sample_Size
             break
 
     err = abs(
-    abs(np.cos(Phi/2)) - abs(np.cos(mu/2))
+    abs(cos(Phi/2)) - abs(cos(mu/2))
     )
-    return(flag,   mu, err, run, sigma)
+
+    return(flag, float('%.5f'%(cos(Phi/2))), float('%.5f'%(cos(mu/2))), err, run, sigma)
     
 r = random.uniform(-pi, pi)
 print(
-    aqpe(threshold = 5*(10**-3), Phi = r, Alpha = 0, sigma = pi / 4, Sample_Size = 1000, Max_Runs = 100000)
+    aqpe(threshold = 5*(10**-3), Phi = r, Alpha = 0, sigma = pi / 4, Sample_Size = 50000, Max_Runs = 100000)
 )
