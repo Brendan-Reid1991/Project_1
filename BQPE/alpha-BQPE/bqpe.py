@@ -10,13 +10,14 @@ def transpose(L):
 
 def Update_Prior(M, theta, outcome, mu, sigma):
     d=outcome
-    phi_mu= mu+((1-2*d)*M*sigma**2*np.sin(M*mu - M*theta))/(np.exp(0.5*M**2*sigma**2)+(1-2*d)*np.cos(M*mu - M*theta))
-    numa = (2*np.exp(M**2*sigma**2)+2*(2*d-1)*exp(M**2 * sigma**2 * 0.5)*(M**2*sigma**2-2)*np.cos(M*mu - M*theta)+(1-2*d)**2*(1-2*M**2*sigma**2+np.cos(2*M*mu - 2*M*theta)))
-    demonetor=2*(np.exp(0.5*M**2*sigma**2)+(1-2*d)*np.cos(M*mu - M*theta))**2
+    phi_mu= mu-((1-2*d)*M*sigma**2*np.sin(M*mu)*np.cos(M*theta))/ (np.exp(0.5*M**2*sigma**2)+(1-2*d)*np.cos(M*mu)*np.cos(M*theta))
+    numa = (np.exp(M**2*sigma**2))+0.5*(2*d-1)*np.cos(M*theta)*(2*np.exp(0.5*M**2*sigma**2)*(M**2*sigma**2-2)*np.cos(M*mu)+(2*d-1)*np.cos(M*theta)*(1-2*M**2*sigma**2+np.cos(2*M*mu)))
+    demonetor=(np.exp(0.5*M**2*sigma**2)+(1-2*d)*np.cos(M*theta)*np.cos(M*mu))**2
     sigma_2=sigma**2*numa/demonetor
     phi_sigma=np.sqrt(sigma_2)
     
     return(phi_mu, phi_sigma)
+
 
 def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, Max_Runs = 10**5):
     if not 0<= Alpha<=1 or not -pi<=Phi<=pi:
@@ -30,8 +31,7 @@ def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, 
     while sigma > threshold:
         
         M = max(1,int(round(1/(sigma**Alpha))))
-        theta = mu - sigma
-        p = 1/2 + cos(M*theta -  M*Phi)/2
+        p = 1/2 + cos(M*Phi)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
@@ -48,7 +48,7 @@ def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, 
 
         # if len(accepted) < 2:
         #     continue
-        mu, sigma = Update_Prior(M, theta, outcome, mu, sigma)
+        mu, sigma = Update_Prior(M, 0, outcome, mu, sigma)
         # mu, sigma = np.mean(accepted), np.std(accepted)
         
         run += 1
@@ -77,8 +77,8 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, S
         Sampled = np.random.normal(mu, sigma, Sample_Size)
         
         M = max(1,int(round(1/(sigma**Alpha))))
-        theta = mu - sigma
-        p = 1/2 + cos(M*theta -  M*Phi)/2
+
+        p = 1/2 + cos(M*Phi)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
@@ -87,7 +87,7 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, S
         
         accepted = []         
         for varphi in Sampled:
-            P = 1/2 + (1-2*outcome)*cos(M*varphi- M*theta)/2
+            P = 1/2 + (1-2*outcome)*cos(M*varphi)/2
             if P > random.uniform(0, 1):
                 accepted.append(
                     varphi
@@ -109,3 +109,7 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, S
 
     return(flag, float('%.5f'%(cos(mu/2))), err, run, sigma)
 
+# for _ in range(50):
+#     print(
+#         bqpe_analytical(Phi = 0.324234234)
+#     )
