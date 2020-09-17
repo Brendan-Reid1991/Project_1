@@ -34,20 +34,20 @@ f = open(write_here,'w+')
 f.write('Runs: %s\nTolerance: %s\n'%(L,thres))
 f.close()
 
-ana_time = 0
-ana_err = 0
+ana_time = []
+ana_err = []
 from progress.bar import ShadyBar
 bar = ShadyBar('Generating analytical data... ', max = L, suffix = '%(percent).2f%%')
 idx = 0
 Failure_Rate = 0
 while idx < L:
-    r = random.uniform(-pi, pi)#random_phases[idx]
+    r = random.uniform(-pi, pi)
     start = time.time()
     flag, est, error, runs, sig = bqpe_analytical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Max_Runs = MaxR)
     end = time.time()
     if flag == 0:
-        ana_time += (end-start) / L
-        ana_err += error / L
+        ana_time.append(end-start)
+        ana_err.append(error)
         idx += 1
         bar.next()
     else:
@@ -56,7 +56,7 @@ while idx < L:
 bar.finish()
 
 f = open(write_here, "a+")
-f.write('Analytical data:\n    Error = %.8f\n    Time = %.8fs\n'%(ana_err, ana_time))
+f.write('Analytical data:\n    Error = %.8f\n    Time = %.8fs\n'%(np.median(ana_err), np.median(ana_time)))
 f.write('Failed runs: %s\n\n'%Failure_Rate)
 f.close()
 
@@ -72,8 +72,8 @@ f.close()
 sample_sizes = [10, 50, 100, 500, 1000]
 bar = ShadyBar('Generating numerical data... ', max = L*len(sample_sizes), suffix = '%(percent).2f%%')
 for S in sample_sizes:
-    num_time = 0
-    num_err = 0
+    num_time = []
+    num_err = []
     idx = 0
     Failure_Rate = 0
     while idx < L:
@@ -82,20 +82,20 @@ for S in sample_sizes:
         flag1, est1, error1, runs1, sig = bqpe_numerical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Sample_Size = S, Max_Runs = MaxR)
         end = time.time()
         if flag1 == 0:
-            num_time += (end-start)/L
-            num_err += error1/L
+            num_time.append(end-start)
+            num_err.append(error1)
             idx += 1
             bar.next()
         else:
             Failure_Rate += 1
     f = open(write_here, "a+")
     str1 = '  {:>11}'.format('%s'%S)
-    str2 = '  {:>12}'.format('%.8f'%num_err)
-    str3 = '{:>12}\n'.format('%.8f'%num_time)
+    str2 = '  {:>12}'.format('%.8f'%(np.median(num_err)))
+    str3 = '{:>12}\n'.format('%.8f'%(np.median(num_time)))
     f.write(str1+'|'+str2+str3)
     
     f.close()
 bar.finish()
 f = open(write_here, "a+")
-f.write('\nFailed runs: %s'%Failure_Rate)
+f.write('Failed runs: %s'%Failure_Rate)
 f.close()

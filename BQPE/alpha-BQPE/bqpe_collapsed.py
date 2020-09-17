@@ -34,7 +34,7 @@ def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, 
             1, np.floor((1/sigma**Alpha) + 1/2)
         )
 
-        p = 1/2 + cos(M*Phi- M*theta)/2
+        p = 1/2 + cos(M*Phi - M*theta)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
@@ -90,6 +90,7 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, Alpha = 0, sigma = pi / 4, S
                 )
 
         if len(accepted) < 2:
+            sigma *= 1.2
             continue
         # mu, sigma = Update_Prior(M, theta, outcome, mu, sigma)
         mu, sigma = np.mean(accepted), np.std(accepted)

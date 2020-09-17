@@ -19,7 +19,7 @@ else:
 def transpose(L):
     return(list(map(list,zip(*L))))
 
-L = 500
+L = 250
 thres = 5*10**-3
 # thres = 10**-3
 MaxR = 10**5#2/thres**2 + 0.1 * 1/thres
@@ -40,8 +40,8 @@ from progress.bar import ShadyBar
 bar = ShadyBar('Generating analytical data... ', max = L * len(Alpha_Values), suffix = '%(percent).2f%%')
 analytical_data = []
 for alpha in Alpha_Values:
-    ana_time = 0
-    ana_err = 0
+    ana_time = []
+    ana_err = []
     idx = 0
     while idx < L:
         r = random.uniform(-pi, pi)
@@ -49,21 +49,21 @@ for alpha in Alpha_Values:
         flag, est, error, runs, sig = bqpe_analytical(threshold = thres, Phi = r, Alpha = alpha, sigma = pi / 4, Max_Runs = MaxR)
         end = time.time()
         if flag == 0:
-            ana_time += (end-start) / L
-            ana_err += error / L
+            ana_time.append(end-start)
+            ana_err.append(error)
             idx += 1
             bar.next()
         # else:
             # print('failed')
-    analytical_data.append([alpha, ana_err, ana_time])
+    analytical_data.append([alpha, np.median(ana_err), np.median(ana_time)])
 bar.finish()
 np.savetxt(analytical_write, analytical_data)
 
 bar = ShadyBar('Generating numerical data... ', max = L * len(Alpha_Values), suffix = '%(percent).2f%%')
 numerical_data = []
 for alpha in Alpha_Values:
-    num_time = 0
-    num_err = 0
+    num_time = []
+    num_err = []
     idx = 0
     while idx < L:
         r = random.uniform(-pi, pi)
@@ -71,11 +71,11 @@ for alpha in Alpha_Values:
         flag, est, error, runs, sig = bqpe_numerical(threshold = thres, Phi = r, Alpha = alpha, sigma = pi / 4, Max_Runs = MaxR, Sample_Size = 500)
         end = time.time()
         if flag == 0:
-            num_time += (end-start) / L
-            num_err += error / L
+            num_time.append(end-start)
+            num_err.append(error)
             idx += 1
             bar.next()
-    numerical_data.append([alpha, num_err, num_time])
+    numerical_data.append([alpha, np.median(num_err), np.median(num_time)])
 bar.finish()
 np.savetxt(numerical_write, numerical_data)
 
@@ -88,7 +88,7 @@ plt.plot(Alpha_Values, transpose(analytical_data)[1], linewidth = 2, label = 'An
 plt.plot(Alpha_Values, transpose(numerical_data)[1], linewidth = 2, label = 'Numerical')
 plt.grid(True)
 plt.xlabel(r'$\alpha$', fontsize = 15)
-plt.ylabel('Average Error', fontsize = 15, labelpad = 5)
+plt.ylabel('Median Error', fontsize = 15, labelpad = 5)
 plt.xticks(fontsize = 12)
 plt.yticks(fontsize = 12)
 plt.legend(fontsize = 12)
@@ -99,7 +99,7 @@ plt.plot(Alpha_Values, transpose(analytical_data)[2], linewidth = 2, label = 'An
 plt.plot(Alpha_Values, transpose(numerical_data)[2], linewidth = 2, label = 'Numerical')
 plt.grid(True)
 plt.xlabel(r'$\alpha$', fontsize = 15)
-plt.ylabel('Average Timing', fontsize = 15, labelpad = 5)
+plt.ylabel('Median Timing', fontsize = 15, labelpad = 5)
 plt.xticks(fontsize = 12)
 plt.yticks(fontsize = 12)
 plt.legend(fontsize = 12)
