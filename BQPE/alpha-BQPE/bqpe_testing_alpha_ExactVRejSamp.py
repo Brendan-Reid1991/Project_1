@@ -5,7 +5,16 @@ import os
 import time as time
 import sys
 from datetime import datetime
-from bqpe import *
+
+if sys.argv[1] == '0':
+    from bqpe import *
+    prefix = 'Superposition_'
+elif sys.argv[1] == '1':
+    from bqpe_collapsed import *
+    prefix = 'Collapsed_'
+else:
+    raise ValueError('Needs integer input 0,1')
+
 
 def transpose(L):
     return(list(map(list,zip(*L))))
@@ -16,16 +25,10 @@ thres = 5*10**-3
 MaxR = 10**5#2/thres**2 + 0.1 * 1/thres
 
 
-random_phases = []
-for _ in range(L):
-    random_phases.append(
-        random.uniform(-pi, pi)
-    )
-
 current = datetime.now()
 
-analytical_write = 'data/analytical_alpha_Tol%s.txt'%thres
-numerical_write = 'data/numerical_alpha_Tol%s.txt'%thres
+analytical_write = 'data/'+prefix+'analytical_alpha_Tol%s.txt'%thres
+numerical_write = 'data/'+prefix+'numerical_alpha_Tol%s.txt'%thres
 
 if os.path.exists(analytical_write):
     os.rename(analytical_write, 'data/analytical_alpha_Tol%s_Renamed%s.txt'%(thres, current.strftime('%d%m%y')))
@@ -41,7 +44,7 @@ for alpha in Alpha_Values:
     ana_err = 0
     idx = 0
     while idx < L:
-        r = random_phases[idx]
+        r = random.uniform(-pi, pi)
         start = time.time()
         flag, est, error, runs, sig = bqpe_analytical(threshold = thres, Phi = r, Alpha = alpha, sigma = pi / 4, Max_Runs = MaxR)
         end = time.time()
@@ -63,7 +66,7 @@ for alpha in Alpha_Values:
     num_err = 0
     idx = 0
     while idx < L:
-        r = random_phases[idx]
+        r = random.uniform(-pi, pi)
         start = time.time()
         flag, est, error, runs, sig = bqpe_numerical(threshold = thres, Phi = r, Alpha = alpha, sigma = pi / 4, Max_Runs = MaxR, Sample_Size = 500)
         end = time.time()
@@ -89,7 +92,7 @@ plt.ylabel('Average Error', fontsize = 15, labelpad = 5)
 plt.xticks(fontsize = 12)
 plt.yticks(fontsize = 12)
 plt.legend(fontsize = 12)
-plt.savefig('Analytical_Numerical_ErrorAgainstAlpha.png', bbox_inches = 'tight')
+plt.savefig(prefix+'Analytical_Numerical_ErrorAgainstAlpha.png', bbox_inches = 'tight')
 plt.clf()
 
 plt.plot(Alpha_Values, transpose(analytical_data)[2], linewidth = 2, label = 'Analytical')
@@ -100,5 +103,5 @@ plt.ylabel('Average Timing', fontsize = 15, labelpad = 5)
 plt.xticks(fontsize = 12)
 plt.yticks(fontsize = 12)
 plt.legend(fontsize = 12)
-plt.savefig('Analytical_Numerical_TimeAgainstAlpha.png', bbox_inches = 'tight')
+plt.savefig(prefix + 'Analytical_Numerical_TimeAgainstAlpha.png', bbox_inches = 'tight')
 plt.clf()

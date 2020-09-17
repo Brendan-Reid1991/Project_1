@@ -5,26 +5,31 @@ import os
 import time as time
 import sys
 from datetime import datetime
-from bqpe import *
+
+if sys.argv[1] == '0':
+    from bqpe import *
+    prefix = 'Superposition_'
+elif sys.argv[1] == '1':
+    from bqpe_collapsed import *
+    prefix = 'Collapsed_'
+else: 
+    raise ValueError('Needs input argument of 0, 1.')
 
 
-
-L = 10**3
+L = 500
 thres = 5*10**-3
-thres = 10**-3
-max = 2/thres**2 + 0.1 * 1/thres
-
-random_phases = []
-for _ in range(L):
-    random_phases.append(
-        random.uniform(-pi, pi)
-    )
+# thres = 10**-3
+MaxR = 10**5
 
 current = datetime.now()
 
 
+current = datetime.now()
 
-write_here = 'analytical_vs_numerical_%s.txt'%current.strftime('%H%M-%d%m%y')
+analytical_write = 'data/'+prefix+'analytical_alpha_Tol%s.txt'%thres
+numerical_write = 'data/'+prefix+'numerical_alpha_Tol%s.txt'%thres
+
+write_here = prefix + 'analytical_vs_numerical_%s.txt'%current.strftime('%H%M-%d%m%y')
 f = open(write_here,'w+')
 f.write('Runs: %s\nTolerance: %s\n'%(L,thres))
 f.close()
@@ -34,20 +39,25 @@ ana_err = 0
 from progress.bar import ShadyBar
 bar = ShadyBar('Generating analytical data... ', max = L, suffix = '%(percent).2f%%')
 idx = 0
+Failure_Rate = 0
 while idx < L:
-    r = random_phases[idx]
+    r = random.uniform(-pi, pi)#random_phases[idx]
     start = time.time()
-    flag, est, error, runs, sig = bqpe_analytical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Max_Runs = max)
+    flag, est, error, runs, sig = bqpe_analytical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Max_Runs = MaxR)
     end = time.time()
     if flag == 0:
         ana_time += (end-start) / L
         ana_err += error / L
         idx += 1
         bar.next()
+    else:
+        Failure_Rate += 1
+        # print('Failed\n')
 bar.finish()
 
 f = open(write_here, "a+")
-f.write('Analytical data:\n    Error = %.8f\n    Time = %.8fs\n\n'%(ana_err, ana_time))
+f.write('Analytical data:\n    Error = %.8f\n    Time = %.8fs\n'%(ana_err, ana_time))
+f.write('Failed runs: %s\n\n'%Failure_Rate)
 f.close()
 
 f = open(write_here, "a+")
@@ -65,20 +75,27 @@ for S in sample_sizes:
     num_time = 0
     num_err = 0
     idx = 0
+    Failure_Rate = 0
     while idx < L:
+        r = random.uniform(-pi, pi)
         start = time.time()
-        flag1, est1, error1, runs1, sig = bqpe_numerical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Sample_Size = S, Max_Runs = max)
+        flag1, est1, error1, runs1, sig = bqpe_numerical(threshold = thres, Phi = r, Alpha = 0, sigma = pi / 4, Sample_Size = S, Max_Runs = MaxR)
         end = time.time()
         if flag1 == 0:
             num_time += (end-start)/L
             num_err += error1/L
             idx += 1
             bar.next()
-
+        else:
+            Failure_Rate += 1
     f = open(write_here, "a+")
     str1 = '  {:>11}'.format('%s'%S)
     str2 = '  {:>12}'.format('%.8f'%num_err)
     str3 = '{:>12}\n'.format('%.8f'%num_time)
     f.write(str1+'|'+str2+str3)
+    
     f.close()
 bar.finish()
+f = open(write_here, "a+")
+f.write('\nFailed runs: %s'%Failure_Rate)
+f.close()
