@@ -51,14 +51,14 @@ def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, M
                 np.floor(1/sigma + 1/2), MaxM
             )
         )
-        p = 1/2 + cos(M*Phi)/2
+        p = 1/2 + cos(2*M*Phi)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
         else:
             outcome = 1
         
-        mu, sigma = Update_Prior(M, 0, outcome, mu, sigma)
+        mu, sigma = Update_Prior(2*M, 0, outcome, mu, sigma)
         
         run += 1
         if run > Max_Runs:
@@ -72,12 +72,7 @@ def bqpe_analytical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, M
     return(flag, float('%.5f'%(cos(mu/2))), err, run, sigma)
 
 
-phi = 0.453343 #np.random.uniform(-pi,pi)
-Expec = cos(phi/2)
-f, res, e,r,s = bqpe_analytical(threshold = 5*(10**-3), Phi = phi, MaxM = 1000, sigma = pi / 4, Max_Runs = 10**4)
-print(res)
-print("\n ",Expec)
-exit()
+
 
 def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, Sample_Size = 100, Max_Runs = 100000):
     if not -pi<=Phi<=pi:
@@ -97,7 +92,7 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, Sa
             )
         )
 
-        p = 1/2 + cos(M*Phi)/2
+        p = 1/2 + cos(2*M*Phi)/2
 
         if random.uniform(0, 1) < p:
             outcome = 0
@@ -106,7 +101,7 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, Sa
         
         accepted = []         
         for varphi in Sampled:
-            P = 1/2 + (1-2*outcome)*cos(M*varphi)/2
+            P = 1/2 + (1-2*outcome)*cos(2*M*varphi)/2
             if P > random.uniform(0, 1):
                 accepted.append(
                     varphi
@@ -134,3 +129,9 @@ def bqpe_numerical(threshold = 5*(10**-3), Phi = 0, MaxM = 1, sigma = pi / 4, Sa
 #     print(
 #         bqpe_analytical(Phi = 0.324234234)
 #     )
+phi = 0.453343 #np.random.uniform(-pi,pi)
+Expec = cos(phi/2)
+f, res, e,r,s = bqpe_numerical(threshold = 5*(10**-3), Phi = phi, MaxM = 1000, sigma = pi / 4, Max_Runs = 10**4)
+print(res)
+print("\n ",Expec)
+exit()

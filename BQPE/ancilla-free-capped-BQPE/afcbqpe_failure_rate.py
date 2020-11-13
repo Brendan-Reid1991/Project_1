@@ -6,7 +6,7 @@ import time as time
 import sys
 from datetime import datetime
 
-from capped_bqpe import *
+from af_capped_bqpe import *
 
 M_range = np.linspace(1, 100, 100, dtype = int)
 Attempts = 100
