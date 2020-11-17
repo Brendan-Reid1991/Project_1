@@ -95,6 +95,22 @@ Phi = pi/np.sqrt(2) #np.random.uniform(-pi, pi)
 expectation = abs(cos(Phi / 2))
 theta = np.arccos(np.sqrt(expectation))
 
+mu = random.uniform(-pi, pi)
+sigma = pi/4
+for _ in range(10**4):
+    M = max(1, round(0.5/sigma))
+    if M%2 == 0 and M > 1:
+        pass
+    else:
+        M = max(1, M - 1)
+    out = circuit_no_ancilla(param = theta, M = M)
+    if sum(out) == 0:
+        out = 0
+    else:
+        out = 1
+    mu, sigma = ExactUpdate(outcome = out, sigma=sigma, mu=mu, M = M)
+print(cos(Phi/2), cos(mu/2))
+
 # for m in m_range:
 #     counts = [0,0,0,0]
 #     print('M = %s'%m)
